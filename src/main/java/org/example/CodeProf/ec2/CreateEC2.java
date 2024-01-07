@@ -1,4 +1,4 @@
-package fr.emse.ec2;
+package org.example.CodeProf.ec2;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;

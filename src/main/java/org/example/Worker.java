@@ -3,6 +3,13 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
+//import org.example.CodeProf.s3.S3UploadFile;
+
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.model.*;
+
 public class Worker {
     private String nameFichier ;
     private double profitStore = 0.0;
@@ -14,8 +21,8 @@ public class Worker {
     }
 
     public void CSVReader(){
-        String currentDirectory = System.getProperty("user.dir");
-        String csvFile = currentDirectory + "/src/main/resources/sales-data/" + this.nameFichier ;
+        //String currentDirectory = System.getProperty("user.dir");
+        String csvFile = this.nameFichier ;
 
         // Define separators of rows, columns
         String line = "";
@@ -48,7 +55,9 @@ public class Worker {
                     this.products.put(data[2],product) ; // Si clef n'existe pas, créer, sinon remplace
                 }
             }
-            CSVWriter();
+            //createCSV();
+            //S3UploadFile();
+            uploadCSVToS3("mybucket44447", this.nameFichier);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,26 +65,60 @@ public class Worker {
 
     }
 
-    public void CSVWriter(){
-        String currentDirectory = System.getProperty("user.dir");
-        String csvFile = currentDirectory + "/src/main/resources/worker-data/" + this.nameFichier ;
 
-        try (PrintWriter writer = new PrintWriter(new FileWriter(csvFile))) {
-
-            writer.println("Store;"+this.store+";"+this.profitStore) ;
-            writer.println("Product;Quantity;Price;Profit");
-            for (Map.Entry<String, InfoProduct> entry : this.products.entrySet()) {
-                String nameProduct = entry.getKey();
-                InfoProduct product = entry.getValue();
-                writer.println(nameProduct+";"+product.getQuantity()+";"+product.getPrice()+";"+product.getProfitTot());
-            }
-
-            // System.out.println("Le fichier CSV a été créé avec succès!");
-
-        } catch (IOException e) {
-            e.printStackTrace();
+    public byte[] createCSVData() {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(baos);
+    
+        writer.println("Store;" + this.store + ";" + this.profitStore);
+        writer.println("Product;Quantity;Price;Profit");
+        for (Map.Entry<String, InfoProduct> entry : this.products.entrySet()) {
+            String nameProduct = entry.getKey();
+            InfoProduct product = entry.getValue();
+            writer.println(nameProduct + ";" + product.getQuantity() + ";" + product.getPrice() + ";" + product.getProfitTot());
         }
+    
+        writer.flush();
+        return baos.toByteArray();
     }
+
+    public void uploadCSVToS3(String bucketName, String filename) {
+        Region region = Region.US_EAST_1;
+        S3Client s3 = S3Client.builder().region(region).build();
+
+        ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
+        ListBucketsResponse listBucketResponse = s3.listBuckets(listBucketsRequest);
+
+        if ((listBucketResponse.hasBuckets()) && (listBucketResponse.buckets().stream().noneMatch(x -> x.name().equals(bucketName)))) {
+            CreateBucketRequest bucketRequest = CreateBucketRequest.builder().bucket(bucketName).build();
+            s3.createBucket(bucketRequest);
+        }
+
+        byte[] csvData = createCSVData();
+        PutObjectRequest putOb = PutObjectRequest.builder().bucket(bucketName).key(filename).build();
+        s3.putObject(putOb, RequestBody.fromBytes(csvData));
+    }
+
+    // public void CSVWriter(){
+    //     String currentDirectory = System.getProperty("user.dir");
+    //     String csvFile = currentDirectory + "/src/main/resources/worker-data/" + this.nameFichier ;
+
+    //     try (PrintWriter writer = new PrintWriter(new FileWriter(csvFile))) {
+
+    //         writer.println("Store;"+this.store+";"+this.profitStore) ;
+    //         writer.println("Product;Quantity;Price;Profit");
+    //         for (Map.Entry<String, InfoProduct> entry : this.products.entrySet()) {
+    //             String nameProduct = entry.getKey();
+    //             InfoProduct product = entry.getValue();
+    //             writer.println(nameProduct+";"+product.getQuantity()+";"+product.getPrice()+";"+product.getProfitTot());
+    //         }
+
+    //         // System.out.println("Le fichier CSV a été créé avec succès!");
+
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //     }
+    // }
 
     public double getProfitStore() {
         return profitStore;

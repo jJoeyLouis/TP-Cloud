@@ -24,20 +24,20 @@ public class Client {
   public static void main(String[] args) {
     Region region = Region.US_EAST_1;
 
-    /*if (args.length < 3) {
+    if (args.length < 3) {
       System.out.println(
           "Missing the Bucket Name, File Path, or File Name arguments");
       System.exit(1);
-    }*/
+    }
 
-    // String bucketName = args[0];
-    // String path = args[1];
-    // String filename = args[2];
+    String bucketName = args[0];
+    String path = args[1];
+    String filename = args[2];
 
-    String bucketName = "897347856983209";
-    // String path = "C:\Users\noset\Documents\MajeureInfo\aws-cloud\src\main\resources";
-    String path = "C:/Users/noset/Documents/MajeureInfo/aws-cloud/src/main/resources/" ;
-    String filename = "01-10-2022-store3.csv";
+    // String bucketName = "mybucket44447";
+    // // String path = "C:\Users\noset\Documents\MajeureInfo\aws-cloud\src\main\resources"; 
+    // String path = "./sales-data" ;
+    // String filename = "01-10-2022-store3.csv";
 
     S3Client s3 = S3Client.builder().region(region).build();
 

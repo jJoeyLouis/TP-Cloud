@@ -1,4 +1,4 @@
-package fr.emse.s3;
+package org.example.CodeProf.s3;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,6 +47,8 @@ public class S3UploadFile {
         RequestBody.fromBytes(getObjectFile(path + File.separator + filename)));
   }
 
+
+  
 
   private static byte[] getObjectFile(String filePath) {
 
