@@ -1,4 +1,4 @@
-package fr.emse.s3;
+package org.example;
 
 import java.io.File;
 import java.io.FileInputStream;
